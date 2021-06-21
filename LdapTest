@@ -1,0 +1,47 @@
+static void LDAPAuthentication()
+        {
+            Console.WriteLine("============================LDAPAuthentication============================");
+            Logger_7.Info("============================LDAPAuthentication============================");
+            Console.Write("Enter LDAP Connetion: ");
+            var connection = Console.ReadLine();
+            Console.Write("Enter Username: ");
+            var username = Console.ReadLine();
+            Console.Write("Enter Pass: ");
+            var pass = Console.ReadLine();
+            //
+            Console.WriteLine("==========");
+            Console.WriteLine("{0} {1} {2}", connection, username, pass);
+            //
+            Logger_7.Info("LDAPAuthentication connection: {0}", connection);
+            Logger_7.Info("username: {0}", username);
+            Logger_7.Info("pass: {0}", pass);
+            //authen
+            bool result = true;
+            var credentials = new NetworkCredential(username, pass);
+            var serverId = new LdapDirectoryIdentifier(connection);
+            var conn = new LdapConnection(serverId, credentials);
+            try
+            {
+                conn.Bind();
+                string name = "";
+                using (var context = new PrincipalContext(ContextType.Domain, connection))
+                {
+                    //var usr = UserPrincipal.FindByIdentity(context, username);
+                    var usr = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, connection + "\\" + username);
+                    if (usr != null)
+                    {
+                        name = usr.Name;
+                        Console.WriteLine("{0} {1} {2} - usr.GivenName {3}, usr.MiddleName {4}, usr.Surname {5}, usr.EmailAddress {6}, usr.EmployeeId {7}", connection, username, name, usr.GivenName, usr.MiddleName, usr.Surname, usr.EmailAddress, usr.EmployeeId);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                Console.WriteLine("LDAPAuthentication {0}, inner {1}, stack {2}", ex.Message, ex.InnerException, ex.StackTrace);
+                Logger_7.Info("LDAPAuthentication {0}, inner {1}, stack {2}", ex.Message, ex.InnerException, ex.StackTrace);
+            }
+            Console.WriteLine("LDAP ERROR {0} {1} {2}", username, pass, result? "ờ mây zing gút chóp": "failllll");
+            Logger_7.Info("LDAP ERROR {0} {1} {2}", username, pass, result? "ờ mây zing gút chóp": "failllll");
+            conn.Dispose();
+        }
